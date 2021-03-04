@@ -56,16 +56,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $letterFound = true;
         }
     }
+    //echo $word;
     if (!$letterFound) {
         $trials++;
         if (MAX_TRIALS <= $trials) {
            $gameState = 'lost';
-            //require ('./views/lost.php');
-        } else {
-            if($word === $replacementString){
-                $gameState = 'win';
-                //require('./views/won.php');
-            }
+        }
+    } else {
+        if($word === $replacementString){
+            $gameState = 'win';
         }
     }
 } else {
