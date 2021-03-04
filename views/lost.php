@@ -6,7 +6,7 @@
          alt="Tu es pendu">
 </div>
 <div>
-    <p>Voici les lettres que tu as essayées: <?= $triedLetters ?></p>
+    <p>Voici les lettres que tu as essayées: <?= $triedLettersStr ?></p>
 </div>
 <div>
     <p><a href="index.php">Recommence&nbsp;!</a></p>

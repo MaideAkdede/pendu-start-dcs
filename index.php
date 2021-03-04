@@ -1,6 +1,12 @@
 <?php
+$start = microtime(true);
+
+
+
 require('./configs/config.php');
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
     $wordIndex = rand(0, $wordsCount - 1);
     $word = $words[$wordIndex];
     $lettersCount = strlen($word);
@@ -34,36 +40,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     ];
     $trials = 0;
     $replacementString = str_pad('', $lettersCount, REPLACEMENT_CHAR);
-    $triedLetters = '';
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $wordIndex = $_POST['wordIndex'];
-    $trials = $_POST['trials'];
-    $lettersCount = $_POST['lettersCount'];
-    $triedLetter = $_POST['triedLetter'];
-    $replacementString = $_POST['replacementString'];
-    $triedLetters = $_POST['triedLetters'];
-    $letters = unserialize(urldecode($_POST['serializedLetters']));
-    $letters[$triedLetter] = false;
-    $word = strtolower($words[$wordIndex]);
+    $triedLetters = [];
 
-    $triedLetters .= $triedLetter;
-    //concaténation : $triedLetters = $triedLetters . $triedLetter;
+    setcookie('wordIndex', $wordIndex);
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    //récupération des données de la requête
+    $wordIndex = $_COOKIE['wordIndex'];
+    $triedLetter = $_POST['triedLetter'];
+    $letters = json_decode($_COOKIE['letters'], true);
+
+    //calcul des nouvelles valeurs du State
+    $letters[$triedLetter] = false;
+    $triedLetters = array_filter($letters, fn($b) => !$b);
+    $word = strtolower($words[$wordIndex]);
+    $trials = count(array_filter(array_keys($triedLetters), fn($l) => !str_contains($word, $l)));
+    $lettersCount = strlen($word);
+    $replacementString =  str_pad('', $lettersCount, REPLACEMENT_CHAR);
 
     $letterFound = false;
     for ($i = 0; $i < $lettersCount; $i++) {
+        $replacementString[$i] = array_key_exists($word[$i], $triedLetters) ? $word[$i] : REPLACEMENT_CHAR ;
         if ($triedLetter === substr($word, $i, 1)) {
-            $replacementString[$i] = $triedLetter;
             $letterFound = true;
         }
     }
     //echo $word;
     if (!$letterFound) {
-        $trials++;
         if (MAX_TRIALS <= $trials) {
-           $gameState = 'lost';
+            $gameState = 'lost';
         }
     } else {
-        if($word === $replacementString){
+        if ($word === $replacementString) {
             $gameState = 'win';
         }
     }
@@ -71,6 +79,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     header('HTTP/1.1 405 Not Allowed');
     exit("Vous n'avez pas le droit d'exécuter cette commande");
 }
-$serializedLetters = urlencode(serialize($letters));
-require('./views/start.php');
+$triedLettersStr = implode(',', array_keys($triedLetters));
+setcookie("letters", json_encode($letters));
 
+require('./views/start.php');
+$end = microtime(true);
+$renderTime = $end - $start;
+printf('rendu de la page en %.6f milliseconde', $renderTime * 1000);
