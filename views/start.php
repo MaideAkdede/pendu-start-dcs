@@ -41,12 +41,6 @@
                     <?php endif; ?>
                 <?php endforeach; ?>
             </select>
-            <input type="hidden"
-                   name="serializedLetters"
-                   value="<?= $serializedLetters ?>">
-            <input type="hidden"
-                   name="wordIndex"
-                   value="<?= $wordIndex ?>">
             <input type="submit"
                    value="essayer cette lettre">
         </div>

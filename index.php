@@ -1,12 +1,11 @@
 <?php
-$start = microtime(true);
+session_start();
 
-
+//$start = microtime(true);
 
 require('./configs/config.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-
     $wordIndex = rand(0, $wordsCount - 1);
     $word = $words[$wordIndex];
     $lettersCount = strlen($word);
@@ -43,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $triedLetters = [];
 
     setcookie('wordIndex', $wordIndex);
+
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     //récupération des données de la requête
@@ -80,9 +80,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit("Vous n'avez pas le droit d'exécuter cette commande");
 }
 $triedLettersStr = implode(',', array_keys($triedLetters));
+
 setcookie("letters", json_encode($letters));
 
 require('./views/start.php');
-$end = microtime(true);
-$renderTime = $end - $start;
-printf('rendu de la page en %.6f milliseconde', $renderTime * 1000);
+//$end = microtime(true);
+//$renderTime = $end - $start;
+//printf('rendu de la page en %.6f milliseconde', $renderTime * 1000);
