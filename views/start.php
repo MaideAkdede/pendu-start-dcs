@@ -35,7 +35,7 @@
             <label for="triedLetter">Choisis ta lettre</label>
             <select name="triedLetter"
                     id="triedLetter">
-                <?php foreach ($letters as $letter => $available) : ?>
+                <?php foreach ($_SESSION['letters']  as $letter => $available) : ?>
                     <?php if ($available): ?>
                         <option value="<?= $letter ?>"><?= $letter ?></option>
                     <?php endif; ?>

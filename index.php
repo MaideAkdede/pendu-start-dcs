@@ -4,12 +4,15 @@ session_start();
 //$start = microtime(true);
 
 require('./configs/config.php');
-
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $words = file('datas/words.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $wordsCount = count($words);
     $wordIndex = rand(0, $wordsCount - 1);
-    $word = $words[$wordIndex];
-    $lettersCount = strlen($word);
-    $letters = [
+    $_SESSION['word'] = strtolower($words[$wordIndex]);
+    $lettersCount = strlen($_SESSION['word']);
+    $trials = 0;
+    $triedLetters = [];
+    $_SESSION['letters'] = [
         'a' => true,
         'b' => true,
         'c' => true,
@@ -37,41 +40,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         'y' => true,
         'z' => true
     ];
-    $trials = 0;
     $replacementString = str_pad('', $lettersCount, REPLACEMENT_CHAR);
-    $triedLetters = [];
-
-    setcookie('wordIndex', $wordIndex);
-
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     //récupération des données de la requête
-    $wordIndex = $_COOKIE['wordIndex'];
+    //$wordIndex = $_COOKIE['wordIndex'];
+    $lettersCount = strlen($_SESSION['word']);
     $triedLetter = $_POST['triedLetter'];
-    $letters = json_decode($_COOKIE['letters'], true);
+    $replacementString = str_pad('', $lettersCount, REPLACEMENT_CHAR);
 
     //calcul des nouvelles valeurs du State
-    $letters[$triedLetter] = false;
-    $triedLetters = array_filter($letters, fn($b) => !$b);
-    $word = strtolower($words[$wordIndex]);
-    $trials = count(array_filter(array_keys($triedLetters), fn($l) => !str_contains($word, $l)));
-    $lettersCount = strlen($word);
-    $replacementString =  str_pad('', $lettersCount, REPLACEMENT_CHAR);
+    $_SESSION['letters'][$triedLetter] = false;
+    $triedLetters = array_filter($_SESSION['letters'], fn($b) => !$b);
+    $trials = count(array_filter(array_keys($triedLetters), fn($l) => !str_contains($_SESSION['word'], $l)));
 
     $letterFound = false;
     for ($i = 0; $i < $lettersCount; $i++) {
-        $replacementString[$i] = array_key_exists($word[$i], $triedLetters) ? $word[$i] : REPLACEMENT_CHAR ;
-        if ($triedLetter === substr($word, $i, 1)) {
+        $replacementString[$i] = array_key_exists($_SESSION['word'][$i], $triedLetters) ? $_SESSION['word'][$i] : REPLACEMENT_CHAR;
+        if ($triedLetter === substr($_SESSION['word'], $i, 1)) {
             $letterFound = true;
         }
     }
-    //echo $word;
+    //echo $_SESSION['word'];
     if (!$letterFound) {
         if (MAX_TRIALS <= $trials) {
             $gameState = 'lost';
         }
     } else {
-        if ($word === $replacementString) {
+        if ($_SESSION['word'] === $replacementString) {
             $gameState = 'win';
         }
     }
@@ -80,10 +75,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit("Vous n'avez pas le droit d'exécuter cette commande");
 }
 $triedLettersStr = implode(',', array_keys($triedLetters));
-
-setcookie("letters", json_encode($letters));
-
 require('./views/start.php');
-//$end = microtime(true);
-//$renderTime = $end - $start;
-//printf('rendu de la page en %.6f milliseconde', $renderTime * 1000);
